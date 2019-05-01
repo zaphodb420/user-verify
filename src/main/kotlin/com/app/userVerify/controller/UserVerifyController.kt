@@ -63,17 +63,17 @@ class UserVerifyController(@Autowired var userRepo:UserRepo) {
 	 * @return error Code according to result (wrong password, wrong name, ok)
 	 */
 	@PutMapping("/User/login/{name}")
-    fun loginUser(@PathVariable name:String, @RequestBody loginInput: LoginInput):ResponseEntity<?> {
+    fun loginUser(@PathVariable name:String, @RequestBody loginInput: LoginInput):ResponseEntity<String> {
 		var retVal = service.loginUser(name, loginInput) 
 		if (retVal == ServiceRetVals.USER_DOES_NOT_EXIST) {
 			//No user with given name was found - return NOT_FOUND
-			return ResponseEntity<Void>(HttpStatus.NOT_FOUND) 
+			return ResponseEntity<String>("",HttpStatus.NOT_FOUND) 
 		} else if (retVal == ServiceRetVals.WRONG_PASSWORD) {
 			//Wrong password - return UNAUTHORIZED
-			return ResponseEntity<Void>(HttpStatus.UNAUTHORIZED)
+			return ResponseEntity<String>("",HttpStatus.UNAUTHORIZED)
 		}
 		//Return OK
-		return ResponseEntity<Int>(service.getUserId(name), HttpStatus.OK)
+		return ResponseEntity<String>(service.getUserId(name).toString(), HttpStatus.OK)
 	}
 
 	/**
@@ -83,13 +83,13 @@ class UserVerifyController(@Autowired var userRepo:UserRepo) {
 	 * @return error Code according to result (wrong password, wrong name, ok)
 	 */
 	@PutMapping("/User/logout/{name}")
-    fun loginUser(@PathVariable name:String):ResponseEntity<Void> {
-		var retVal = service.logoutUser(name, logoutInput) 
+    fun logoutUser(@PathVariable name:String, @RequestParam token:String ):ResponseEntity<Void> {
+		var retVal = service.logoutUser(name, token) 
 		if (retVal == ServiceRetVals.USER_DOES_NOT_EXIST) {
 			//No user with given name was found - return NOT_FOUND
 			return ResponseEntity<Void>(HttpStatus.NOT_FOUND) 
 		} else if (retVal == ServiceRetVals.WRONG_PASSWORD) {
-			//Wrong password - return UNAUTHORIZED
+			//Wrong token - return UNAUTHORIZED
 			return ResponseEntity<Void>(HttpStatus.UNAUTHORIZED)
 		}
 		//Return OK

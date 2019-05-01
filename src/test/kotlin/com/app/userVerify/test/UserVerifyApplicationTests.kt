@@ -20,6 +20,7 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.junit.Before
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.web.servlet.ResultActions
 
 
 
@@ -283,4 +284,67 @@ class UserVerifyApplicationTests() {
 						.andExpect(status().isOk)
 					
 	}
+	
+	/**
+	 * looutUserAPI - Tests the logoutUser functionality
+	 */		
+	@Test
+	fun logoutUserAPI() {
+		val name:String = "joe3"
+		val wrongName:String = "jack3"
+		val password:String = "pass"
+		
+		val payload = mapOf(
+                "password" to password,
+                "name" to name
+        )
+		
+		val passwordPayload = mapOf(
+			"password" to password)
+		
+
+
+
+		//Add new user
+		mockMvc.perform(MockMvcRequestBuilders
+						.post("/User")
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(payload).toString()))
+						.andExpect(status().isOk)
+		
+
+
+		//Login with correct parameters
+		var resultActions = mockMvc.perform(MockMvcRequestBuilders
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(passwordPayload).toString()))
+						.andExpect(status().isOk)
+		
+		//Save token for logout
+		var token = resultActions.andReturn().getResponse().getContentAsString()
+		
+		//Logout with wrong name
+		mockMvc.perform(MockMvcRequestBuilders
+						.put("/User/logout/".plus(wrongName))
+						.param("token",token))
+						.andExpect(status().isNotFound)
+		
+		//Logout with wrong token
+		mockMvc.perform(MockMvcRequestBuilders
+						.put("/User/logout/".plus(name))
+						.param("token","-1"))
+						.andExpect(status().isUnauthorized)
+		
+		//Logout with correct parameters
+		mockMvc.perform(MockMvcRequestBuilders
+						.put("/User/logout/".plus(name))
+						.param("token",token))
+						.andExpect(status().isOk)
+		
+		
+		
+						
+	}
+		
 }
