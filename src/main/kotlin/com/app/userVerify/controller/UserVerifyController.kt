@@ -40,8 +40,8 @@ class UserVerifyController(@Autowired var userRepo:UserRepo) {
 		
 	}
 	
-	@GetMapping("/User/{name}")
-    fun verifyUser(@PathVariable name:String, @RequestParam(value = "password") password: String):ResponseEntity<Void> {
+	@PostMapping("/User/login/{name}")
+    fun loginUser(@PathVariable name:String, @RequestParam(value = "password") password: String):ResponseEntity<Void> {
 		var retVal = service.verifyUser(name, password) 
 		if (retVal == ServiceRetVals.USER_DOES_NOT_EXIST) {
 			return ResponseEntity<Void>(HttpStatus.NOT_FOUND) 

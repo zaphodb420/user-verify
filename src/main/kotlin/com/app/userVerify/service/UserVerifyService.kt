@@ -29,7 +29,7 @@ public class UserVerifyService(var userRepo:UserRepo) {
 		} else {
 			return ServiceRetVals.INVALID_PASSWORD
 		}
-		
+
 	}
 	
     fun verifyUser(name:String, password: String):ServiceRetVals {

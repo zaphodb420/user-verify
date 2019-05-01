@@ -18,5 +18,8 @@ public class User(
     val name: String = "",
  
     @Column(name = "password")
-    val password: String = ""    
+    val password: String = "",
+
+    @Column(name = "isLoggedIn")
+    val osLoggedIn: Boolean = false    
 )
