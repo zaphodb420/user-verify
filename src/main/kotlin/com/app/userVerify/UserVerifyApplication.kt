@@ -15,11 +15,14 @@ import org.springframework.boot.autoconfigure.domain.EntityScan
 @SpringBootApplication
 @EnableJpaRepositories("com.app.userVerify")
 @EntityScan("com.app.userVerify")
-
+/**
+ * UserVerifyApplication - Application caller for the spring boot API
+ * @author      Oren Gur Arie
+ */
 open class UserVerifyApplication
 
 	
 fun main(args: Array<String>) {
-	//runApplication<UserVerifyApplication>(*args)
+	//Start the application
 	SpringApplication.run(UserVerifyApplication::class.java, *args)
 }

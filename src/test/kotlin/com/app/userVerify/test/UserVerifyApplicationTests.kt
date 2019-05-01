@@ -24,21 +24,30 @@ import org.springframework.test.annotation.DirtiesContext
 
 
 @RunWith(SpringRunner::class)
-//@WebMvcTest
 @SpringBootTest
 @WebAppConfiguration
-
+/**
+ * UserVerifyApplicationTests - unit testing for the user verify API functionality
+ * Covers Controller, Service and DAO functionality
+ * @author      Oren Gur Arie
+ */
 class UserVerifyApplicationTests() {
 	@Autowired
 	lateinit private  var context:WebApplicationContext;
-	
 	 lateinit private var mockMvc: MockMvc
-	
+
+
+	/**
+	 * setUp - Setting up the test environment
+	 */
 	@Before
 	public fun setUp() {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.context).build();
 	}
 
+	/**
+	 * addUserAPI - Tests the AddUser functionality
+	 */
 	@Test
 	fun addUserAPI() {
 		val name:String = "joe"
@@ -50,6 +59,7 @@ class UserVerifyApplicationTests() {
                 "name" to name
         )
 		
+		//Try to add a user with unacceptable password
 		mockMvc.perform(MockMvcRequestBuilders
 						.post("/User")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -61,13 +71,14 @@ class UserVerifyApplicationTests() {
                 "name" to name
         )
 		
-		
+		//Try to add a user with correct parameters
 		mockMvc.perform(MockMvcRequestBuilders
 						.post("/User")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(payload).toString()))
 						.andExpect(status().isOk)
 
+		//Try to add a user with existing name
 		mockMvc.perform(MockMvcRequestBuilders
 						.post("/User")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -75,6 +86,9 @@ class UserVerifyApplicationTests() {
 						.andExpect(status().isConflict)
 		}
 	
+	/**
+	 * updatePasswordApi - Tests the UpdatePassword functionality
+	 */
 	@Test
 	fun updatePasswordApi() {
 		val name:String = "john"
@@ -85,7 +99,16 @@ class UserVerifyApplicationTests() {
 		val payload = mapOf(
                 "password" to oldPassword,
                 "name" to name)
+		
+		val oldPasswordPayload = mapOf(
+                "password" to oldPassword
+        )
 
+		val newPasswordPayload = mapOf(
+                "password" to newPassword
+        )
+
+		//Add new user
 		mockMvc.perform(MockMvcRequestBuilders
 				.post("/User")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -104,43 +127,53 @@ class UserVerifyApplicationTests() {
 							 "newPassword" to newPassword,
 							 "oldPassword" to oldPassword)
 		
+		//Try to update a password for non existing user
 		mockMvc.perform(MockMvcRequestBuilders
-						.put("/User/".plus(wrongName))
+						.put("/User/update/".plus(wrongName))
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(payload2).toString()))
 						.andExpect(status().isNotFound)
 		
+		//Try to update a password to an unacceptable password
 		mockMvc.perform(MockMvcRequestBuilders
-					.put("/User/".plus(name))
+					.put("/User/update/".plus(name))
 					.contentType(MediaType.APPLICATION_JSON_UTF8)
 					.content(JSONObject(invalidPayload).toString()))
 					.andExpect(status().isNotAcceptable)
-				
+
+		//Try to update a password with wrong current password value
 		mockMvc.perform(MockMvcRequestBuilders
-						.put("/User/".plus(name))
+						.put("/User/update/".plus(name))
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(wrongPayload).toString()))
 						.andExpect(status().isUnauthorized)
 		
+		//Try to update a password with correct parametrs
 		mockMvc.perform(MockMvcRequestBuilders
-						.put("/User/".plus(name))
+						.put("/User/update/".plus(name))
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(payload2).toString()))
 						.andExpect(status().isOk)
 		
+		//Try to login with old password
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", oldPassword))
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(oldPasswordPayload).toString()))
 						.andExpect(status().isUnauthorized)
-		
+
+		//Try to login with new password
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", newPassword))
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(newPasswordPayload).toString()))
 						.andExpect(status().isOk)
-		
 	}
 	
 
+	/**
+	 * delUserAPI - Tests the UpdatePassword functionality
+	 */
 	@Test
 	fun delUserAPI() {
 		val name:String = "joe1"
@@ -153,43 +186,56 @@ class UserVerifyApplicationTests() {
                 "password" to password,
                 "name" to name
         )
+
+		val passwordPayload = mapOf(
+                "password" to password
+        )
 		
+		//Add a new user
 		mockMvc.perform(MockMvcRequestBuilders
 						.post("/User")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(payload).toString()))
 						.andExpect(status().isOk)
 		
+		//Delete a user with wrong name
 		mockMvc.perform(MockMvcRequestBuilders
 						.delete("/User/".plus(wrongName))
 						.param("password", password))
 						.andExpect(status().isNotFound)
 
+		//Delete a user with wrong password
 		mockMvc.perform(MockMvcRequestBuilders
 						.delete("/User/".plus(name))
 						.param("password", wrongPassword))
 						.andExpect(status().isUnauthorized)		
 		
+		//Access the user (which wasn't deleted yet)
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", password))
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(passwordPayload).toString()))
 						.andExpect(status().isOk)
 		
+		//Delete the user with correct parameters
 		mockMvc.perform(MockMvcRequestBuilders
 						.delete("/User/".plus(name))
 						.param("password", password))
-						.andExpect(status().isOk)		
+						.andExpect(status().isOk)
 		
+		//Try to access the deleted user
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", password))
-						.andExpect(status().isNotFound)
-		
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(passwordPayload).toString()))
+						.andExpect(status().isNotFound)		
 	}
 
-		
+	/**
+	 * loginUserAPI - Tests the loginUser functionality
+	 */		
 	@Test
-	fun verifyUserAPI() {
+	fun loginUserAPI() {
 		val name:String = "joe2"
 		val wrongName:String = "jack1"
 		val correctPassword:String = "pass"
@@ -199,26 +245,41 @@ class UserVerifyApplicationTests() {
                 "password" to correctPassword,
                 "name" to name
         )
-	
+
+		val correctPasswordPayload = mapOf(
+                "password" to correctPassword
+        )
+
+		val wrongPasswordPayload = mapOf(
+                "password" to wrongPassword
+        )
+
+		//Add new user
 		mockMvc.perform(MockMvcRequestBuilders
 						.post("/User")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.content(JSONObject(payload).toString()))
 						.andExpect(status().isOk)
 
+		//Try to login with wrong password
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", wrongPassword))
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(wrongPasswordPayload).toString()))
 						.andExpect(status().isUnauthorized)
 
+		//Try to login with wrong name
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(wrongName))
-						.param("password", correctPassword))
+						.put("/User/login/".plus(wrongName))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(correctPasswordPayload).toString()))
 						.andExpect(status().isNotFound)
-
+		
+		//Login with correct parameters
 		mockMvc.perform(MockMvcRequestBuilders
-						.get("/User/".plus(name))
-						.param("password", correctPassword))
+						.put("/User/login/".plus(name))
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(JSONObject(correctPasswordPayload).toString()))
 						.andExpect(status().isOk)
 					
 	}

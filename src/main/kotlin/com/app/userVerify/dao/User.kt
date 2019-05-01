@@ -7,7 +7,10 @@ import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.GenerationType
 
-
+/**
+ * User - Single entry structure in the database
+ * @author      Oren Gur Arie
+ */
 @Entity
 @Table(name = "Users")
 public class User(
@@ -21,5 +24,5 @@ public class User(
     val password: String = "",
 
     @Column(name = "isLoggedIn")
-    val osLoggedIn: Boolean = false    
+    val isLoggedIn: Boolean = false    
 )
