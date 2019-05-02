@@ -83,7 +83,7 @@ public class UserVerifyService(var userRepo:UserRepo) {
 			//No user with that name
 			return ServiceRetVals.USER_DOES_NOT_EXIST
 		if (user[0].id == token.toInt()) {
-			var newUser = User(user[0].id, user[0].name, user[0].password, true)
+			var newUser = User(user[0].id, user[0].name, user[0].password, false)
 			userRepo.save(newUser)
 			return ServiceRetVals.OK
 		}
