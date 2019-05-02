@@ -50,7 +50,7 @@ public class UserVerifyService(var userRepo:UserRepo) {
 	}
 
 	/**
-	 * loginUser - adds a new user to the repository
+	 * loginUser - Change the state of a user to logged in
 	 * @param name - logged in user name
 	 * @param loginInput - data received with the request (for now only password)
 	 * @return error Code according to result (wrong password, wrong name, ok)
@@ -62,6 +62,27 @@ public class UserVerifyService(var userRepo:UserRepo) {
 			//No user with that name
 			return ServiceRetVals.USER_DOES_NOT_EXIST
 		if (user[0].password == loginInput.password) {
+			var newUser = User(user[0].id, user[0].name, user[0].password, true)
+			userRepo.save(newUser)
+			return ServiceRetVals.OK
+		}
+		//Wrong password received
+		return ServiceRetVals.WRONG_PASSWORD
+	}
+	
+		/**
+	 * logoutUser - logout request for a given user
+	 * @param name - logged in user name
+	 * @param token - Token received with login request
+	 * @return error Code according to result (wrong password, wrong name, ok)
+	 */
+	
+    fun logoutUser(name:String, token: String):ServiceRetVals {
+		var user = userRepo.findByName(name)
+		if (user.isEmpty() == true)
+			//No user with that name
+			return ServiceRetVals.USER_DOES_NOT_EXIST
+		if (user[0].id == token.toInt()) {
 			var newUser = User(user[0].id, user[0].name, user[0].password, true)
 			userRepo.save(newUser)
 			return ServiceRetVals.OK
